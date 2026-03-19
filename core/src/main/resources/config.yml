@@ -226,10 +226,22 @@ allow-custom-geometry: false
 
 optional-packs:
     enable-optional-packs: true
-    mysql-url: jdbc:mariadb://mysql-01.bjd-mc.com/main_core?autoReconnect=true
+    mysql-url: jdbc:mariadb://localhost:3306/minecraft?autoReconnect=true
     mysql-user: root
-    mysql-pass: msj
+    mysql-pass: abc12345
+
+redis:
+    url: mc.xiguayun.com.cn
+    port: 6379
+    password: password
 
 service:
     skinurl: http://skinsync.bjd-mc.com:12455
     token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTQ1MTQifQ.2xux8sGax4fVfku3wWEhBDgSWc0zJBCxwzHteUUK1gZ6A0Ssf07YoF4sjtGM4WkrKY_rjeO7yItcgualYsnz4A
+
+game-id: ""
+game-key: ""
+test-game-key: ""
+is-test-server: true
+shop-server-url: ""
+web-server-url: ""

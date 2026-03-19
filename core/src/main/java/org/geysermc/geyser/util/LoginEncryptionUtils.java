@@ -28,6 +28,9 @@ package org.geysermc.geyser.util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
@@ -53,7 +56,8 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Base64;
+import java.security.interfaces.ECPublicKey;
+import java.text.ParseException;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -79,7 +83,14 @@ public class LoginEncryptionUtils {
     private static void encryptConnectionWithCert(GeyserSession session, String clientData, List<String> certChainData) {
         try {
             GeyserImpl geyser = session.getGeyser();
-            ChainValidationResult result = EncryptionUtils.validateChain(certChainData);
+            ChainValidationResult result;
+            boolean isNeteaseClient = session.isNeteaseClient();
+
+            if (isNeteaseClient) {
+                result = NeteaseEncryptionUtils.validateChain(certChainData);
+            } else {
+                result = EncryptionUtils.validateChain(certChainData);
+            }
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
 
@@ -96,33 +107,54 @@ public class LoginEncryptionUtils {
 
             PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
 
-            byte[] clientDataPayload = EncryptionUtils.verifyClientData(clientData, identityPublicKey);
-            if (clientDataPayload == null) {
-                throw new IllegalStateException("Client data isn't signed by the given chain data");
+            // 验证客户端数据
+            byte[] clientDataPayload;
+            if (isNeteaseClient) {
+                // 网易客户端使用JWT格式，需要特殊处理
+                try {
+                    // 解析JWT
+                    JWSObject jwsObject = JWSObject.parse(clientData);
+
+                    // 验证签名
+                    if (!jwsObject.verify(new ECDSAVerifier((ECPublicKey) identityPublicKey))) {
+                        throw new IllegalStateException("网易客户端数据签名验证失败");
+                    }
+
+                    // 获取payload
+                    String payload = jwsObject.getPayload().toString();
+                    clientDataPayload = payload.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+                    geyser.getLogger().debug("Successfully verified NetEase client data JWT");
+                } catch (ParseException | JOSEException e) {
+                    geyser.getLogger().warning("Failed to parse NetEase client data JWT: " + e.getMessage());
+                    throw new IllegalStateException("Client data isn't signed by the given chain data");
+                }
+            } else {
+                // 标准客户端验证
+                clientDataPayload = EncryptionUtils.verifyClientData(clientData, identityPublicKey);
+                if (clientDataPayload == null) {
+                    throw new IllegalStateException("Client data isn't signed by the given chain data");
+                }
             }
 
+            // 解析客户端数据
             JsonNode clientDataJson = JSON_MAPPER.readTree(clientDataPayload);
             BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
             data.setOriginalString(clientData);
             session.setClientData(data);
 
-            if (data.getGeometryName() != null) {
-                String decodeGeometryName = new String(Base64.getDecoder().decode(data.getGeometryName()), StandardCharsets.UTF_8);
-                if (!decodeGeometryName.contains("geometry.humanoid.customSlim") && !decodeGeometryName.contains("geometry.humanoid.custom")) {
-                    ProvidedSkins.ProvidedSkin alexOrSteve = ProvidedSkins.getAlexOrSteve(session.getAuthData().uuid());
-                    data.setSkinData(Base64.getEncoder().encodeToString(alexOrSteve.getData().skinData()));
-                }
-            }
+            // 网易客户端不需要加密握手
+            if (!isNeteaseClient) {
+                try {
+                    startEncryptionHandshake(session, identityPublicKey);
+                } catch (Throwable e) {
+                    // An error can be thrown on older Java 8 versions about an invalid key
+                    if (geyser.getConfig().isDebugMode()) {
+                        e.printStackTrace();
+                    }
 
-            try {
-                startEncryptionHandshake(session, identityPublicKey);
-            } catch (Throwable e) {
-                // An error can be thrown on older Java 8 versions about an invalid key
-                if (geyser.getConfig().isDebugMode()) {
-                    e.printStackTrace();
+                    sendEncryptionFailedMessage(geyser);
                 }
-
-                sendEncryptionFailedMessage(geyser);
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");

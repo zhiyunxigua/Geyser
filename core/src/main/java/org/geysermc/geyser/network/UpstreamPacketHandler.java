@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
@@ -33,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
@@ -64,6 +66,7 @@ import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.SessionLoadBehaviorPacksEventImpl;
 import org.geysermc.geyser.event.type.SessionLoadOptionalResourcePacksEventImpl;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
+import org.geysermc.geyser.network.netty.codec.NetEaseCompressionCodec;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -164,6 +167,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        // NetEase Start
+        int rakVersion = session.getUpstream().getSession().getPeer().getRakVersion();
+        boolean neteaseClient = isNetEaseClient(rakVersion, packet.getProtocolVersion());
+        session.setNeteaseClient(neteaseClient);
+        // NetEase End
+
         // New since 1.19.30 - sent before login packet
         PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
 
@@ -172,6 +181,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         responsePacket.setCompressionThreshold(512);
         session.sendUpstreamPacketImmediately(responsePacket);
         session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
+
+        // NetEase Start
+        // 使用自己的网易解码器
+        if (neteaseClient) {
+            Channel channel = session.getUpstream().getSession().getPeer().getChannel();
+            channel.pipeline().replace(CompressionCodec.NAME, CompressionCodec.NAME, new NetEaseCompressionCodec(compressionStrategy, true));
+        } else {
+            session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
+        }
+        // NetEase End
 
         networkSettingsRequested = true;
         return PacketSignal.HANDLED;
@@ -196,9 +215,21 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
-
-        GeyserImpl.getInstance().getLogger().info(String.format("Player %s : %s connected with protocol version %s!",
-            session.bedrockUsername(), session.playerUuid(), session.protocolVersion()));
+        // NetEase Start
+        int rakVersion = session.getUpstream().getSession().getPeer().getRakVersion();
+        if (!session.isNeteaseClient()) {
+            session.setNeteaseClient(isNetEaseClient(rakVersion, loginPacket.getProtocolVersion()));
+        }
+        // 设置前缀
+        String logPrefix = "";
+        int protocolVersion = session.protocolVersion();
+        if (isNetEaseClient(rakVersion, protocolVersion)) {
+            String bedrockVersion = session.getUpstream().getSession().getCodec().getMinecraftVersion();
+            logPrefix = "netease_" + bedrockVersion + "_" + session.getAuthData().uid() + " ";
+        }
+        GeyserImpl.getInstance().getLogger().info(String.format("%sPlayer %s : %s connected with protocol version %s!",
+            logPrefix, session.bedrockUsername(), session.playerUuid(), session.protocolVersion()));
+        // NetEase End
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
             return PacketSignal.HANDLED;
@@ -470,4 +501,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private static long totalSentPackBytes = 0L;
+
+    private static boolean isNetEaseClient(int rakVersion, int protocolVersion) {
+        return rakVersion == 8 && (protocolVersion == 686 || protocolVersion == 766);
+    }
 }

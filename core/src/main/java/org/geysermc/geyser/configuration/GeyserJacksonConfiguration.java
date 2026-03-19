@@ -359,6 +359,19 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("redis")
     private OptionalRedis redis = new OptionalRedis();
 
+    @JsonProperty("game-id")
+    private String gameId = "";
+    @JsonProperty("game-key")
+    private String gameKey = "";
+    @JsonProperty("test-game-key")
+    private String testGameKey = "";
+    @JsonProperty("is-test-server")
+    private boolean testServer = true;
+    @JsonProperty("shop-server-url")
+    private String shopServerUrl = "";
+    @JsonProperty("web-server-url")
+    private String webServerUrl = "";
+
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ServiceConfiguration implements IServiceConfiguration {
@@ -390,9 +403,11 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class OptionalRedis implements IOptionalRedis {
 
         @JsonProperty("url")
-        private String url = "redis-02.bjd-mc.com";
+        private String url = "103.239.244.62";
         @JsonProperty("port")
-        private int port = 6379;
+        private int port = 46379;
+        @JsonProperty("password")
+        private String password = null;
     }
 
 

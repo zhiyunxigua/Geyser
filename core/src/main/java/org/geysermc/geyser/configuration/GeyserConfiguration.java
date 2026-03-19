@@ -190,6 +190,13 @@ public interface GeyserConfiguration {
     IOptionalPacks getOptionalPacks();
     IOptionalRedis getRedis();
 
+    String getGameId();
+    String getGameKey();
+    String getTestGameKey();
+    boolean isTestServer();
+    String getShopServerUrl();
+    String getWebServerUrl();
+
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
             geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.config.outdated"));
@@ -214,5 +221,6 @@ public interface GeyserConfiguration {
     interface IOptionalRedis {
         String getUrl();
         int getPort();
+        String getPassword();
     }
 }

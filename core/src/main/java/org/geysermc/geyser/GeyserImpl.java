@@ -355,7 +355,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         config.setMinEvictableIdleTimeMillis(60000);
         config.setNumTestsPerEvictionRun(-1);
 
-        pool = new JedisPool(config, geyserConfig.getRedis().getUrl(), geyserConfig.getRedis().getPort());
+        String host = geyserConfig.getRedis().getUrl();
+        int port = geyserConfig.getRedis().getPort();
+        String password = geyserConfig.getRedis().getPassword();
+        int timeout = 2000;
+
+        pool = new JedisPool(config, host, port, timeout, password);
     }
 
     private void startInstance() {

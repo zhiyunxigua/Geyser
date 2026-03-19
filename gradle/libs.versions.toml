@@ -145,6 +145,8 @@ math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
+natives = { group = "com.nukkitx", name = "natives", version = "1.0.3" }
+
 # plugins
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }

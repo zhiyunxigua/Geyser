@@ -99,6 +99,7 @@ import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NeteasePythonRpcPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
@@ -119,6 +120,7 @@ import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
+import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -216,6 +218,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
 import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
@@ -223,6 +226,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
+import org.msgpack.MessagePack;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
@@ -725,12 +729,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
-    //Netease OnGround
+    private final HashMap<UUID, String> cachedPlayerList;
+
+    //Netease Only
     @Getter
     @Setter
     private boolean sdkOnGround;
 
-    private final HashMap<UUID, String> cachedPlayerList;
+    @Setter
+    private boolean neteaseClient;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -882,6 +889,44 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
         upstream.sendPacket(gamerulePacket);
+
+        // 创建 NeteasePythonRpcPacket 并直接设置 bytes
+        ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(Key.key(PluginMessageChannels.MOD_SDK), getPlayerInfo());
+        this.sendDownstreamPacket(pythonRpcPacket);
+    }
+
+    private byte[] getPlayerInfo() {
+        try {
+            // 创建 PyRpcPacket 并直接设置 bytes
+            NeteasePythonRpcPacket pythonRpcPacket = new NeteasePythonRpcPacket();
+            Map<String, Object> playerInfo = new HashMap<>() {{
+                put("GameId", geyser.getConfig().getGameId());
+                if (geyser.getConfig().isTestServer()) {
+                    put("GameKey", geyser.getConfig().getTestGameKey());
+                } else {
+                    put("GameKey", geyser.getConfig().getGameKey());
+                }
+                put("TestServer", geyser.getConfig().isTestServer());
+                put("ShopServerUrl", geyser.getConfig().getShopServerUrl());
+                put("WebServerUrl", geyser.getConfig().getWebServerUrl());
+                put("ProxyUid", getAuthData().uid());
+                put("Uuid", getAuthData().uuid().toString());
+            }};
+
+            MessagePack messagePack = new MessagePack();
+            List<Object> data = Arrays.asList(
+                "SetPlayerInfo",
+                Arrays.asList(playerInfo),
+                null
+            );
+
+            // 序列化
+            return messagePack.write(data);
+
+        } catch (Exception e) {
+            geyser.getLogger().error("Failed to send player info", e);
+            return null;
+        }
     }
 
     public void authenticate(String username) {

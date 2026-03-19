@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.exclude
+
 plugins {
     // Allow blossom to mark sources root of templates
     idea
@@ -9,6 +11,8 @@ plugins {
 dependencies {
     constraints {
         implementation(libs.raknet) // Ensure protocol does not override the RakNet version
+        api("org.cloudburstmc:nbt:3.0.3.Final")
+        exclude("org.apache.logging.log4j")
     }
 
     api(projects.common)
@@ -18,6 +22,9 @@ dependencies {
     api(libs.bundles.jackson)
     api(libs.guava)
 
+    api(libs.natives)
+    api("com.nimbusds:nimbus-jose-jwt:9.37.2")
+
     // Fastutil Maps
     implementation(libs.bundles.fastutil)
 
@@ -25,6 +32,7 @@ dependencies {
     implementation(libs.websocket)
 
     api(libs.bundles.protocol)
+    api("org.cloudburstmc:nbt:3.0.3.Final")
 
     api(libs.minecraftauth)
     api(libs.mcprotocollib) {
@@ -32,7 +40,9 @@ dependencies {
         exclude("net.raphimc", "MinecraftAuth")
     }
 
-    api("com.netease.mc.pe:authlib-test:1.2")
+    implementation("net.jodah:expiringmap:0.5.11")
+    implementation("org.bitbucket.b_c:jose4j:0.9.3")
+    api("com.netease.mc:authlib-test:1.2")
     api("org.msgpack:msgpack:0.6.12")
     api("com.zaxxer", "HikariCP", "4.0.3")
     api("redis.clients", "jedis", "4.4.8")

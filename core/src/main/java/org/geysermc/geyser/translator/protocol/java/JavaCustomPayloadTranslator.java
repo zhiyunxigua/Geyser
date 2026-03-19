@@ -147,9 +147,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             });
         } else if (channel.equals(PluginMessageChannels.MOD_SDK)) {
             byte[] data = packet.getData();
-            byte[] msgPackData = Gzip.unGZipBytes(data);
-            NeteasePythonRpcPacket neteaseCustomPacket = new NeteasePythonRpcPacket(msgPackData);
-
+            NeteasePythonRpcPacket neteaseCustomPacket = new NeteasePythonRpcPacket(data);
             session.sendUpstreamPacket(neteaseCustomPacket);
         } else if (channel.equals(PluginMessageChannels.CUSTOM)) {
             byte[] data = packet.getData();
