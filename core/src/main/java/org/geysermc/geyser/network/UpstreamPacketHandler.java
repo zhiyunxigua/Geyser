@@ -228,7 +228,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             logPrefix = "netease_" + bedrockVersion + "_" + session.getAuthData().uid() + " ";
         }
         GeyserImpl.getInstance().getLogger().info(String.format("%sPlayer %s : %s connected with protocol version %s!",
-            logPrefix, session.bedrockUsername(), session.playerUuid(), session.protocolVersion()));
+            logPrefix, session.bedrockUsername(), session.getAuthData().uuid(), session.protocolVersion()));
         // NetEase End
         if (session.isClosed()) {
             // Can happen if Xbox validation fails

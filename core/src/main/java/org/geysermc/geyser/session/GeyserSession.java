@@ -281,6 +281,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final SessionPlayerEntity playerEntity;
 
+    @Getter
+    @Setter
+    private org.geysermc.geyser.api.skin.SkinData cachedSkinData;
+
     private final AdvancementsCache advancementsCache;
     private final BookEditCache bookEditCache;
     private final BundleCache bundleCache;
@@ -738,6 +742,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private boolean neteaseClient;
+
+    @Getter
+    @Setter
+    private org.cloudburstmc.protocol.bedrock.data.InputMode lastInputMode;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;

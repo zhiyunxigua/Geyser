@@ -125,6 +125,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         Key register = MinecraftKey.key("register");
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, PluginMessageChannels.getFloodgateRegisterData()));
+        } else {
+            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, PluginMessageChannels.getOtherRegisterData()));
         }
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 
