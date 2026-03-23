@@ -69,10 +69,5 @@ repositories {
         content { includeGroupByRegex("com\\.github\\..*") }
     }
 
-    // 其他自定义内容
-    maven {
-        url = uri("https://raw.githubusercontent.com/zhiyunxigua/maven-repo/master/")
-        isAllowInsecureProtocol = false
-    }
      mavenLocal()
 }

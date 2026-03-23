@@ -203,18 +203,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     CooldownUtils.sendCooldown(session);
                 }
             }
-            InputMode inputMode = packet.getInputMode();
-            if (inputMode != null) {
-                InputMode lastInputMode = session.getLastInputMode();
-                if (inputMode.equals(lastInputMode)) {
-                    return;
-                }
-                session.setLastInputMode(inputMode);
-                ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(
-                    Key.key(PluginMessageChannels.MOD_SDK),
-                    getInputModeData(session, inputMode));
-                session.sendDownstreamGamePacket(pythonRpcPacket);
-            }
         }
 
         // Vehicle input is send before player movement
@@ -234,6 +222,19 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
+        }
+
+        InputMode inputMode = packet.getInputMode();
+        if (inputMode != null) {
+            InputMode lastInputMode = session.getLastInputMode();
+            if (inputMode.equals(lastInputMode)) {
+                return;
+            }
+            session.setLastInputMode(inputMode);
+            ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(
+                Key.key(PluginMessageChannels.MOD_SDK),
+                getInputModeData(session, inputMode));
+            session.sendDownstreamGamePacket(pythonRpcPacket);
         }
     }
 
