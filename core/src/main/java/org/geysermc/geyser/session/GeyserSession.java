@@ -735,6 +735,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final HashMap<UUID, String> cachedPlayerList;
 
+    @Getter
+    private final Map<Integer, String> customEntityMappings = new HashMap<>();
+
     //Netease Only
     @Getter
     @Setter

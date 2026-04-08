@@ -800,10 +800,21 @@ public class MappingsReader_v1 extends MappingsReader {
         if (node == null || !node.isObject()) {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
+        String bid = "";
+        boolean hasSpawnEgg = false;
+        boolean summonable = true;
         float width = 1.0f;
         float height = 1.0f;
 
-
+        if (node.has("bid")) {
+            bid = node.get("bid").asText("");
+        }
+        if (node.has("hasspawnegg")) {
+            hasSpawnEgg = node.get("hasspawnegg").asBoolean(false);
+        }
+        if (node.has("summonable")) {
+            summonable = node.get("summonable").asBoolean(true);
+        }
         if (node.has("collision_box")) {
             JsonNode jsonNode = node.get("collision_box");
             if (jsonNode.has("width")) {
@@ -814,7 +825,7 @@ public class MappingsReader_v1 extends MappingsReader {
             }
         }
 
-        return new CustomEntityMapping(identifier, width, height);
+        return new CustomEntityMapping(identifier, bid, hasSpawnEgg, summonable, width, height);
     }
 
     /**
