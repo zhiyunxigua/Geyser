@@ -41,14 +41,16 @@ import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.Gzip;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
@@ -150,8 +152,9 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             NeteasePythonRpcPacket neteaseCustomPacket = new NeteasePythonRpcPacket(data);
             session.sendUpstreamPacket(neteaseCustomPacket);
         } else if (channel.equals(PluginMessageChannels.CUSTOM)) {
-            byte[] data = packet.getData();
 
+            byte[] data = packet.getData();
+            System.out.println(Arrays.toString(data));
             // packet id, packet data
             if (data.length < 2) {
                 throw new IllegalStateException("包异常，请检查");
@@ -163,6 +166,26 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 boolean b2 = buf.readBoolean();
                 session.setQuickSwitchDimension(b1);
                 session.setNoUnloadChunk(b2);
+            } else if (customId == -1) {
+                int entityId = buf.readInt();
+                byte[] idBytes = new byte[buf.readableBytes()];
+                buf.readBytes(idBytes);
+                String identifier = new String(idBytes, StandardCharsets.UTF_8);
+                session.getCustomEntityMappings().put(entityId, identifier);
+
+                // 如果实体已经在 Bedrock 端生成了，立即热替换
+                Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+                if (entity != null && entity.isValid()) {
+                    int colonIdx = identifier.indexOf(":");
+                    String shortId = colonIdx >= 0 ? identifier.substring(colonIdx + 1) : identifier;
+
+                    if (Registries.CUSTOM_ENTITY_DEFINITIONS.containsKey(shortId)) {
+                        entity.despawnEntity();
+                        entity.setDefinition(Registries.CUSTOM_ENTITY_DEFINITIONS.get(shortId));
+                        entity.spawnEntity(identifier);
+                    }
+                }
+                // 如果实体还没生成，映射已存储，spawnEntity() 时会自动检查
             }
         }
     }
