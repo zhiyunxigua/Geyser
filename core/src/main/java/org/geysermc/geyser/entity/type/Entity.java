@@ -208,6 +208,17 @@ public class Entity implements GeyserEntity {
     }
 
     public void spawnEntity() {
+        String customId = session.getCustomEntityMappings().get(entityId);
+        if (customId != null) {
+            int colonIdx = customId.indexOf(":");
+            String shortId = colonIdx >= 0 ? customId.substring(colonIdx + 1) : customId;
+            if (Registries.CUSTOM_ENTITY_DEFINITIONS.containsKey(shortId)) {
+                this.definition = Registries.CUSTOM_ENTITY_DEFINITIONS.get(shortId);
+                spawnEntity(customId);  // 用自定义标识符生成，不走下面的原有逻辑
+                return;
+            }
+        }
+
         AddEntityPacket addEntityPacket = new AddEntityPacket();
         addEntityPacket.setIdentifier(definition.identifier());
         addEntityPacket.setRuntimeEntityId(geyserId);

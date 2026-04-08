@@ -786,6 +786,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
+    @Getter
+    private final Map<Integer, String> customEntityMappings = new HashMap<>();
+
+    //Netease Only
     //Netease OnGround
     @Getter
     @Setter
@@ -959,7 +963,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // We disable the locator bar until we are certain that the server wants us to enable it
         // See WaypointCache for details
         gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
         upstream.sendPacket(gamerulePacket);
 
         // 创建 NeteasePythonRpcPacket 并直接设置 bytes
