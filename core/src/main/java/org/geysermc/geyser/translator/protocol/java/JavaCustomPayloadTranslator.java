@@ -154,7 +154,6 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
         } else if (channel.equals(PluginMessageChannels.CUSTOM)) {
 
             byte[] data = packet.getData();
-            System.out.println(Arrays.toString(data));
             // packet id, packet data
             if (data.length < 2) {
                 throw new IllegalStateException("包异常，请检查");
