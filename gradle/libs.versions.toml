@@ -152,8 +152,9 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-common" }
 protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol-codec" }
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-
+jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version = "0.9.6" }
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+nbt = { group = "org.cloudburstmc", name = "nbt", version = "3.0.3.Final" }
 
 bstats = { group = "org.bstats", name = "bstats-base", version.ref = "bstats"}
 
@@ -167,6 +168,10 @@ architectury-plugin = { group = "architectury-plugin", name = "architectury-plug
 architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 loom-companion = { group = "dev.architectury.loom-companion", name = "dev.architectury.loom-companion.gradle.plugin", version.ref = "loom-companion" }
+
+expiringmap = { group = "net.jodah", name = "expiringmap", version = "0.5.10" }
+natives = { group = "com.nukkitx", name = "natives", version = "1.0.3" }
+nimbusds = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.37.2" }
 
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }

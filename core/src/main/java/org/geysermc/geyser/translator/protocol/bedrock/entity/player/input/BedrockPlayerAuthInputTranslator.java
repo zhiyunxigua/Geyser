@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -37,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -56,14 +58,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.msgpack.MessagePack;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -229,6 +236,42 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
+        }
+
+        InputMode inputMode = packet.getInputMode();
+        if (inputMode != null) {
+            InputMode lastInputMode = session.getLastInputMode();
+            if (inputMode.equals(lastInputMode)) {
+                return;
+            }
+            session.setLastInputMode(inputMode);
+            ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(
+                Key.key(PluginMessageChannels.MOD_SDK),
+                getInputModeData(session, inputMode));
+            session.sendDownstreamGamePacket(pythonRpcPacket);
+        }
+    }
+
+    /**
+     * 构建操作模式数据
+     */
+    private byte[] getInputModeData(GeyserSession session, InputMode inputMode) {
+        try {
+            MessagePack messagePack = new MessagePack();
+            Map<String, Object> inputModeInfo = new HashMap<>();
+            inputModeInfo.put("input_mode", inputMode.name());
+
+            List<Object> data = Arrays.asList(
+                "PlayerInputMode",  // 方法名
+                Arrays.asList(inputModeInfo),  // 参数列表
+                null  // 回调ID
+            );
+
+            return messagePack.write(data);
+
+        } catch (Exception e) {
+            session.getGeyser().getLogger().error("Failed to create input mode data", e);
+            return new byte[0];
         }
     }
 

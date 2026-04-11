@@ -22,12 +22,17 @@ dependencies {
 
     api(projects.common)
     api(projects.api)
+    api(libs.jose4j)
 
     api(libs.yaml) // Used for extensions
     annotationProcessor(libs.configurate.`interface`.ap)
     api(libs.configurate.`interface`)
     implementation(libs.configurate.yaml)
     api(libs.guava)
+    api(libs.expiringmap)
+    api(libs.natives)
+    api(libs.nimbusds)
+    api(libs.nbt)
 
     compileOnly(libs.gson.record.factory) {
         isTransitive = false
@@ -51,7 +56,7 @@ dependencies {
         exclude("net.raphimc", "MinecraftAuth")
     }
 
-    api("com.netease.mc.pe:authlib-test:1.2")
+    api("com.netease.mc:authlib-test:1.2")
     api("org.msgpack:msgpack:0.6.12")
     api("com.zaxxer", "HikariCP", "4.0.3")
     api("redis.clients", "jedis", "4.4.8")

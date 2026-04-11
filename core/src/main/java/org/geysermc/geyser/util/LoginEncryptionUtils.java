@@ -125,6 +125,7 @@ public class LoginEncryptionUtils {
                 }
             }
 
+            /*  网易不需要加密握手协议
             try {
                 startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
@@ -134,7 +135,7 @@ public class LoginEncryptionUtils {
                 }
 
                 sendEncryptionFailedMessage(geyser);
-            }
+            } */
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
             throw new RuntimeException("Unable to complete login", ex);
@@ -150,6 +151,7 @@ public class LoginEncryptionUtils {
         session.sendUpstreamPacketImmediately(packet);
 
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
+        session.getGeyser().getLogger().info(String.format("encryptionKey:%s", encryptionKey));
         session.getUpstream().getSession().enableEncryption(encryptionKey);
     }
 

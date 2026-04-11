@@ -545,7 +545,7 @@ class CodecProcessor {
                 .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
         }
 
-        if (protocolVersion == 766) {
+        if (protocolVersion >= 766) {
             codecBuilder.updateSerializer(PlayerAuthInputPacket.class, PLAYER_AUTH_INPUT_NETEASE_766);
             codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER_NETEASE);
         }

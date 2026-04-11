@@ -477,6 +477,28 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
+    interface ShopConfig {
+        @DefaultString("")
+        String gameId();
+
+        @DefaultString("")
+        String gameKey();
+
+        @DefaultString("")
+        String testGameKey();
+
+        @DefaultBoolean(true)
+        boolean isTestServer();
+
+        @DefaultString("")
+        String shopServerUrl();
+
+        @DefaultString("")
+        String webServerUrl();
+    }
+
+
+    @ConfigSerializable
     interface ServiceConfig {
         @DefaultString("http://skinsync.bjd-mc.com:12455")
         String skinurl();
@@ -507,6 +529,9 @@ public interface GeyserConfig {
 
         @DefaultNumeric(6379)
         int port();
+
+        @DefaultString("")
+        String password();
     }
 
     @ConfigSerializable
@@ -522,6 +547,9 @@ public interface GeyserConfig {
         @Comment("Whether custom Bedrock geometry should be accepted.")
         @DefaultBoolean(false)
         boolean allowCustomGeometry();
+
+        @Comment("NetEase shop")
+        ShopConfig shop();
 
         @Comment("Skin synchronization service settings")
         ServiceConfig service();

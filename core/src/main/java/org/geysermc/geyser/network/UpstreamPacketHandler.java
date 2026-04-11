@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
@@ -33,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
@@ -64,6 +66,7 @@ import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.SessionLoadBehaviorPacksEventImpl;
 import org.geysermc.geyser.event.type.SessionLoadOptionalResourcePacksEventImpl;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
+import org.geysermc.geyser.network.netty.codec.NetEaseCompressionCodec;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
@@ -181,7 +184,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         responsePacket.setCompressionAlgorithm(algorithm);
         responsePacket.setCompressionThreshold(512);
         session.sendUpstreamPacketImmediately(responsePacket);
-        session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
+
+        Channel channel = session.getUpstream().getSession().getPeer().getChannel();
+        channel.pipeline().replace(CompressionCodec.NAME, CompressionCodec.NAME, new NetEaseCompressionCodec(compressionStrategy, true));
 
         networkSettingsRequested = true;
         return PacketSignal.HANDLED;
@@ -226,10 +231,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
-            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
-            return PacketSignal.HANDLED;
-        }
+        //if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
+        //    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
+        //    return PacketSignal.HANDLED;
+        //}
 
         geyser.getSessionManager().addPendingSession(session);
 
