@@ -159,6 +159,8 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
+    protected boolean fixOffset = false;
+
     protected final GeyserEntityPropertyManager propertyManager;
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -597,6 +599,10 @@ public class Entity implements GeyserEntity {
                         if (Registries.CUSTOM_ENTITY_DEFINITIONS.containsKey(identifier)) {
                             this.despawnEntity();
                             this.definition = Registries.CUSTOM_ENTITY_DEFINITIONS.get(identifier);
+                            if (!this.fixOffset) {
+                                position = Vector3f.from(position.getX(), position.getY() - 1.62, position.getZ());
+                                this.fixOffset = true;
+                            }
                             this.spawnEntity(this.definition.identifier());
                         }
                     }

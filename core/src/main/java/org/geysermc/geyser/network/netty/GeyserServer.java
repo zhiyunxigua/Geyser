@@ -151,7 +151,6 @@ public final class GeyserServer {
     public CompletableFuture<Void> bind(InetSocketAddress address) {
         bootstrapFutures = new ChannelFuture[listenCount];
         for (int i = 0; i < listenCount; i++) {
-            System.out.println("#bind -> " + i);
             ChannelFuture future = bootstrap.bind(address);
             modifyHandlers(future);
             bootstrapFutures[i] = future;

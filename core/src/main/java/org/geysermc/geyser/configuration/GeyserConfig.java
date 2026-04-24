@@ -49,78 +49,77 @@ import java.util.UUID;
 
 @ConfigSerializable
 public interface GeyserConfig {
-    @Comment("Network settings for the Bedrock listener")
+    @Comment("Bedrock 监听器的网络设置")
     BedrockConfig bedrock();
 
-    @Comment("Network settings for the Java server connection")
+    @Comment("Java 服务器连接的网络设置")
     JavaConfig java();
 
-    @Comment("MOTD settings")
+    @Comment("MOTD 设置")
     MotdConfig motd();
 
-    @Comment("Gameplay options that affect Bedrock players")
+    @Comment("影响 Bedrock 玩家的游戏选项")
     GameplayConfig gameplay();
 
-    @Comment("The default locale if we don't have the one the client requested. If set to \"system\", the system's language will be used.")
+    @Comment("如果我们没有客户端请求的语言环境，则使用的默认语言环境。如果设置为 \"system\"，将使用系统的语言。")
     @DefaultString(GeyserLocale.SYSTEM_LOCALE)
     @NonNull
     String defaultLocale();
 
-    @Comment("Whether player IP addresses will be logged by the server.")
+    @Comment("服务器是否记录玩家 IP 地址。")
     @DefaultBoolean(true)
     boolean logPlayerIpAddresses();
 
     @Comment("""
-            For online mode authentication type only.
-            Stores a list of Bedrock player usernames that should have their Java Edition account saved after login.
-            This saves a token that can be reused to authenticate the player later. This does not save emails or passwords,
-            but you should still be cautious when adding to this list and giving others access to this Geyser instance's files.
-            Removing a name from this list will delete its cached login information on the next Geyser startup.
-            The file that tokens will be saved in is in the same folder as this config, named "saved-refresh-tokens.json".""")
+            仅适用于正版验证模式。
+            存储一个 Bedrock 玩家用户名列表，这些玩家在登录后应保存其 Java版 账户信息。
+            这会保存一个令牌，稍后可重复用于验证玩家身份。这不会保存邮箱或密码，
+            但您仍应谨慎添加到此列表并授予他人访问此 Geyser 实例文件的权限。
+            从此列表中删除一个名称将在下次 Geyser 启动时删除其缓存的登录信息。
+            存储令牌的文件与此配置文件位于同一文件夹中，名为 "saved-refresh-tokens.json"。""")
     default List<String> savedUserLogins() {
         return List.of("ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername",
             "ThisOtherExampleUsernameShouldAlsoBeLongEnough");
     }
 
     @Comment("""
-            For online mode authentication type only.
-            Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
-            User is allowed to disconnect from the server during this period.""")
+            仅适用于正版验证模式。
+            指定等待用户授权 Geyser 访问其 Microsoft 账户的秒数。
+            在此期间允许用户断开与服务器的连接。""")
     @DefaultNumeric(120)
     int pendingAuthenticationTimeout();
 
     @Comment("""
-            Whether to alert the console and operators that a new Geyser version is available that supports a Bedrock version
-            that this Geyser version does not support. It's recommended to keep this option enabled, as many Bedrock platforms
-            auto-update.""")
+            是否提醒控制台和操作员有新的 Geyser 版本支持此 Geyser 版本不支持的 Bedrock 版本。
+            建议保持此选项启用，因为许多 Bedrock 平台会自动更新。""")
     @DefaultBoolean(true)
     boolean notifyOnNewBedrockUpdate();
 
-    @Comment("Advanced configuration options. These usually do not need modifications.")
+    @Comment("高级配置选项。这些通常不需要修改。")
     AdvancedConfig advanced();
 
-    @Comment("Netease-specific configuration options")
+    @Comment("网易专用配置选项")
     NeteaseConfig netease();
 
     @Comment("""
-            bStats is a stat tracker that is entirely anonymous and tracks only basic information
-            about Geyser, such as how many people are online, how many servers are using Geyser,
-            what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
+            bStats 是一个完全匿名的统计追踪器，仅追踪基本信息，
+            例如有多少人在线，有多少服务器在使用 Geyser，
+            使用什么操作系统等。你可以在此处了解更多关于 bStats 的信息：https://bstats.org/。
             https://bstats.org/plugin/server-implementation/GeyserMC""")
     @DefaultBoolean(true)
-    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // bStats platform versions used
+    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // 使用的 bStats 平台版本
     boolean enableMetrics();
 
-    @Comment("The bstats metrics uuid. Do not touch!")
-    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // bStats platform versions used
+    @Comment("bStats 指标 uuid。请勿修改！")
+    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // 使用的 bStats 平台版本
     default UUID metricsUuid() {
         return UUID.randomUUID();
     }
 
-    @Comment("If debug messages should be sent through console")
+    @Comment("是否通过控制台发送调试消息")
     boolean debugMode();
 
-    @Comment("Do not change!")
+    @Comment("请勿修改！")
     @SuppressWarnings("unused")
     default int configVersion() {
         return Constants.CONFIG_VERSION;
@@ -129,8 +128,8 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface BedrockConfig extends BedrockListener {
         @Comment("""
-                The IP address that Geyser will bind on to listen for incoming Bedrock connections.
-                Generally, you should only change this if you want to limit what IPs can connect to your server.""")
+                 Geyser 将绑定以监听传入 Bedrock 连接的 IP 地址。
+                 通常，仅当您希望限制可以连接到服务器的 IP 时才应更改此项。""")
         @NonNull
         @Override
         @DefaultString("0.0.0.0")
@@ -138,16 +137,16 @@ public interface GeyserConfig {
         String address();
 
         @Comment("""
-            The port that will Geyser will listen on for incoming Bedrock connections.
-            Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.""")
+             Geyser 将监听传入 Bedrock 连接的端口。
+             由于 Minecraft: Bedrock Edition 使用 UDP，此端口必须允许 UDP 流量。""")
         @Override
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
         int port();
 
         @Comment("""
-                Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
-                This option makes the Bedrock port the same as the Java port every time you start the server.""")
+                 某些托管服务每次启动服务器时都会更改您的 Java 端口，并且要求 Bedrock 使用相同的端口。
+                 此选项使每次启动服务器时 Bedrock 端口与 Java 端口相同。""")
         @DefaultBoolean
         @PluginSpecific
         boolean cloneRemotePort();
@@ -186,8 +185,8 @@ public interface GeyserConfig {
         void port(int port);
 
         @Comment("""
-                What type of authentication Bedrock players will be checked against when logging into the Java server.
-                Can be "floodgate" (see https://wiki.geysermc.org/floodgate/), "online", or "offline".""")
+                Bedrock 玩家登录 Java 服务器时将根据何种验证类型进行检查。
+                可以是 "floodgate"（参见 https://wiki.geysermc.org/floodgate/）、"online" 或 "offline"。""")
         @NonNull
         @Override
         default AuthType authType() {
@@ -219,35 +218,35 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface MotdConfig {
         @Comment("""
-            The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. This is irrelevant if "passthrough-motd" is set to true.
-            If either of these are empty, the respective string will default to "Geyser\"""")
+            将广播给 Minecraft: Bedrock Edition 客户端的 MOTD。如果 "passthrough-motd" 设置为 true，则此项无效。
+            如果其中任一为空，则相应的字符串将默认为 "Geyser\"""")
         @DefaultString("Geyser")
         String primaryMotd();
         @DefaultString("Another Geyser server.")
         String secondaryMotd();
 
-        @Comment("Whether Geyser should relay the MOTD from the Java server to Bedrock players.")
+        @Comment("Geyser 是否应将 Java 服务器的 MOTD 中继给 Bedrock 玩家。")
         @DefaultBoolean(true)
         boolean passthroughMotd();
 
         @Comment("""
-            Maximum amount of players that can connect.
-            This is only visual, and is only applied if passthrough-motd is disabled.""")
+            可以连接的最大玩家数量。
+            这仅是视觉上的，并且仅在禁用 passthrough-motd 时应用。""")
         @DefaultNumeric(100)
         int maxPlayers();
 
-        @Comment("Whether to relay the player count and max players from the Java server to Bedrock players.")
+        @Comment("是否将 Java 服务器的玩家数量和最大玩家数中继给 Bedrock 玩家。")
         @DefaultBoolean(true)
         boolean passthroughPlayerCounts();
 
         @Comment("""
-            Whether to use server API methods to determine the Java server's MOTD and ping passthrough.
-            There is no need to disable this unless your MOTD or player count does not appear properly.""")
+            是否使用服务器 API 方法来确定 Java 服务器的 MOTD 和 ping 直通。
+            除非您的 MOTD 或玩家数量显示不正确，否则无需禁用此项。""")
         @DefaultBoolean(true)
         @PluginSpecific
         boolean integratedPingPassthrough();
 
-        @Comment("How often to ping the Java server to refresh MOTD and player count, in seconds.")
+        @Comment("刷新 MOTD 和玩家数量以 ping Java 服务器的频率，单位为秒。")
         @DefaultNumeric(3)
         int pingPassthroughInterval();
     }
@@ -255,96 +254,95 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface GameplayConfig {
 
-        @Comment("The server name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.")
+        @Comment("将发送给 Minecraft: Bedrock Edition 客户端的服务器名称。这在暂停菜单和设置菜单中都可见。")
         @DefaultString("Geyser")
         String serverName();
 
         @Comment("""
-            Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
-            Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
+            允许发送假的冷却指示器。否则 Bedrock 玩家看不到冷却，因为他们仍然使用 1.8 战斗系统。
+            请注意：如果启用了冷却，某些用户可能会在冷却序列期间看到黑框，如下所示：
             https://geysermc.org/img/external/cooldown_indicator.png
-            This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-            This setting can be set to "title", "actionbar" or "disabled\"""")
+            可以通过进入 Bedrock 设置中的辅助功能选项卡并将"文本背景不透明度"设置为 0 来禁用它。
+            此设置可以设置为 "title"、"actionbar" 或 "disabled\"""")
         default CooldownUtils.CooldownType showCooldown() {
             return CooldownUtils.CooldownType.TITLE;
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         @Comment("""
-            Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
-            Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.""")
+            Bedrock 客户端在首次打开命令提示符时如果收到大量命令可能会冻结。
+            禁用它将阻止发送命令建议并解决 Bedrock 客户端的冻结问题。""")
         @DefaultBoolean(true)
         boolean commandSuggestions();
 
-        @Comment("Controls if coordinates are shown to players.")
+        @Comment("控制是否向玩家显示坐标。")
         @DefaultBoolean(true)
         boolean showCoordinates();
 
-        @Comment("Whether Bedrock players are blocked from performing their scaffolding-style bridging.")
+        @Comment("是否阻止 Bedrock 玩家进行其脚手架式搭桥。")
         boolean disableBedrockScaffolding();
 
         @Comment("""
-            Bedrock prevents building and displaying blocks above Y127 in the Nether.
-            This config option works around that by changing the Nether dimension ID to the End ID.
-            The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.""")
+            Bedrock 阻止在下界 Y127 以上建造和显示方块。
+            此配置选项通过将下界维度 ID 更改为末地 ID 来解决此问题。
+            这样做的主要缺点是整个下界将具有相同的红色雾霾，而不是每个生物群系具有不同的雾霾。""")
         boolean netherRoofWorkaround();
 
         @Comment("""
-            Whether to show Bedrock Edition emotes to other Bedrock Edition players.
+            是否向其他 Bedrock 版玩家显示 Bedrock 版表情。
             """)
         @DefaultBoolean(true)
         boolean emotesEnabled();
 
         @Comment("""
-            Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
-            or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
-            This config option can be set to any Bedrock item identifier. If you want to set this to a custom item, make sure that you specify the item in the following format: "geyser_custom:<mapping-name>"
+            用于标记 Bedrock 玩家物品栏中不可用槽位的物品。例如创造模式下的 2x2 合成网格，
+            或大小与通常的 3x9 不同的自定义物品栏菜单。屏障块是默认物品。
+            此配置选项可以设置为任何 Bedrock 物品标识符。如果您想将其设置为自定义物品，请确保按以下格式指定物品："geyser_custom:<mapping-name>"
             """)
         @DefaultString("minecraft:barrier")
         String unusableSpaceBlock();
 
         @Comment("""
-            Whether to add any items and blocks which normally does not exist in Bedrock Edition.
-            This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
-            If this is disabled, furnace minecart items will be mapped to hopper minecart items.
-            Geyser's block, item, and skull mappings systems will also be disabled.
-            This option requires a restart of Geyser in order to change its setting.""")
+            是否添加任何通常不存在于 Bedrock 版中的物品和方块。
+            仅当使用不使用"传输包"式服务器切换的代理时才需要禁用它。
+            如果禁用，漏斗矿车物品将被映射到漏斗矿车物品。
+            Geyser 的方块、物品和头颅映射系统也将被禁用。
+            此选项需要重新启动 Geyser 才能更改其设置。""")
         @DefaultBoolean(true)
         boolean enableCustomContent();
 
         @Comment("""
-            Force clients to load all resource packs if there are any.
-            If set to false, it allows the user to connect to the server even if they don't
-            want to download the resource packs.""")
+            如果有任何资源包，强制客户端加载所有资源包。
+            如果设置为 false，即使用户不想下载资源包，也允许其连接到服务器。""")
         @DefaultBoolean(true)
         boolean forceResourcePacks();
 
         @Comment("""
-            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
-            If enabled, force-resource-packs will be enabled.""")
+            是否自动提供一个资源包，该资源包是某些 Geyser 功能所必需的，提供给所有连接的 Bedrock 玩家。
+            如果启用，force-resource-packs 将被启用。""")
         @DefaultBoolean(true)
         boolean enableIntegratedPack();
 
         @Comment("""
-            Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
-            ping, it may also cause players to time out more easily.""")
+            是否将玩家 ping 转发到服务器。虽然启用此功能将使 Bedrock 玩家拥有更准确的
+            ping，但也可能导致玩家更容易超时。""")
         boolean forwardPlayerPing();
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         @Comment("""
-            Allows Xbox achievements to be unlocked.
-            If a player types in an unknown command, they will receive a message that states cheats are disabled.
-            Otherwise, commands work as expected.""")
+            允许解锁 Xbox 成就。
+            如果玩家输入未知命令，他们会收到一条消息，指出作弊已禁用。
+            否则，命令按预期工作。""")
         boolean xboxAchievementsEnabled();
 
         @Comment("""
-            The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
-            A value of 0 will disable all custom skulls.
-            Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.""")
+            每个玩家最多显示的自定义头颅数量。增加此数量可能会降低较弱设备的性能。
+            值为 0 将禁用所有自定义头颅。
+            将此设置为 -1 将导致显示所有自定义头颅，无论距离或数量如何。""")
         @DefaultNumeric(128)
         int maxVisibleCustomSkulls();
 
-        @Comment("The radius in blocks around the player in which custom skulls are displayed.")
+        @Comment("玩家周围显示自定义头颅的半径范围，以方块为单位。")
         @DefaultNumeric(32)
         int customSkullRenderDistance();
     }
@@ -352,9 +350,9 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface AdvancedBedrockConfig {
         @Comment("""
-                The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
-                A value of 0 will broadcast the port specified above.
-                DO NOT change this unless Geyser runs on a different port than the one that is used to connect.""")
+                向 Bedrock 客户端广播 MOTD 的端口，告知他们应使用该端口连接到服务器。
+                值为 0 将广播上面指定的端口。
+                除非 Geyser 运行在与用于连接的端口不同的端口上，否则请勿更改此项。""")
         @DefaultNumeric(0)
         @NumericRange(from = 0, to = 65535)
         int broadcastPort();
@@ -362,41 +360,41 @@ public interface GeyserConfig {
         void broadcastPort(int port);
 
         @Comment("""
-                How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
-                the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.""")
+                压缩到 Bedrock 客户端的网络流量的程度。数字越大，使用的 CPU 越多，
+                但使用的带宽越小。低于 -1 或高于 9 无效。设置为 -1 以禁用。""")
         @DefaultNumeric(6)
         @NumericRange(from = -1, to = 9)
         int compressionLevel();
 
         @Comment("""
-                Whether to expect HAPROXY protocol for connecting Bedrock clients.
-                This is useful only when you are running a UDP reverse proxy in front of your Geyser instance.
-                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+                是否期望连接 Bedrock 客户端使用 HAPROXY 协议。
+                这仅在您在 Geyser 实例前面运行 UDP 反向代理时有用。
+                如果您不知道这是什么，请不要修改！""")
         @DefaultBoolean
         boolean useHaproxyProtocol();
 
         @Comment("""
-                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
-                should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
-                Keeping this list empty means there is no IP address whitelist.
-                IP addresses, subnets, and links to plain text files are supported.""")
+                允许使用 HAPROXY 协议通信的代理 IP 地址/子网列表。仅在启用 "use-proxy-protocol" 时有效，
+                并且仅当您无法使用合适的防火墙时才应使用（对于共享托管提供商等通常如此）。
+                将此列表留空表示没有 IP 地址白名单。
+                支持 IP 地址、子网和指向纯文本文件的链接。""")
         default List<String> haproxyProtocolWhitelistedIps() {
             return Collections.emptyList();
         }
 
         @Comment("""
-            The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
-            1400 is the default.""")
+            互联网支持的最大 MTU 为 1492，但可能会导致数据包碎片问题。
+            默认值为 1400。""")
         @DefaultNumeric(1400)
         int mtu();
 
         @Comment("""
-            This option disables the auth step Geyser performs for connecting Bedrock players.
-            It can be used to allow connections from ProxyPass and WaterdogPE. In these cases, make sure that users
-            cannot directly connect to this Geyser instance. See https://www.spigotmc.org/wiki/firewall-guide/ for
-            assistance - and use UDP instead of TCP.
-            Disabling Bedrock authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames, and is therefore a security risk.
-            All Floodgate functionality (including skin uploading and account linking) will also not work when this option is disabled.""")
+            此选项禁用 Geyser 为连接 Bedrock 玩家执行的身份验证步骤。
+            可用于允许来自 ProxyPass 和 WaterdogPE 的连接。在这些情况下，请确保用户
+            不能直接连接到此 Geyser 实例。请参阅 https://www.spigotmc.org/wiki/firewall-guide/ 获取
+            帮助 - 并使用 UDP 而不是 TCP。
+            对于其他用例禁用 Bedrock 身份验证是不受支持的，因为它允许任何人伪造用户名，因此存在安全风险。
+            当禁用此选项时，所有 Floodgate 功能（包括皮肤上传和账户关联）也将无法使用。""")
         @DefaultBoolean(true)
         boolean validateBedrockLogin();
     }
@@ -404,27 +402,27 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface AdvancedJavaConfig {
         @Comment("""
-                Whether to enable HAPROXY protocol when connecting to the Java server.
-                This is useful only when:
-                1) Your Java server supports HAPROXY protocol (it probably doesn't)
-                2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
-                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+                连接到 Java 服务器时是否启用 HAPROXY 协议。
+                这仅在以下情况下有用：
+                1) 您的 Java 服务器支持 HAPROXY 协议（它可能不支持）
+                2) 您在代理的主配置中启用了该选项的情况下运行 Velocity 或 BungeeCord。
+                如果您不知道这是什么，请不要修改！""")
         boolean useHaproxyProtocol();
 
         @Comment("""
-        Whether to connect directly into the Java server without creating a TCP connection.
-        This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
-        If enabled, the remote address and port sections are ignored.
-        If disabled, expect performance decrease and latency increase.
+        是否直接连接到 Java 服务器，而不创建 TCP 连接。
+        仅当与数据包或网络交互的插件无法与 Geyser 正常工作时才应禁用它。
+        如果启用，则忽略远程地址和端口部分。
+        如果禁用，预计性能会下降，延迟会增加。
         """)
         @DefaultBoolean(true)
         @PluginSpecific
         boolean useDirectConnection();
 
         @Comment("""
-        Whether Geyser should attempt to disable packet compression (from the Java Server to Geyser) for Bedrock players.
-        This should be a benefit as there is no need to compress data when Java packets aren't being handled over the network.
-        This requires use-direct-connection to be true.
+        Geyser 是否应尝试为 Bedrock 玩家禁用（从 Java 服务器到 Geyser 的）数据包压缩。
+        这应该是有益的，因为当 Java 数据包不通过网络处理时，无需压缩数据。
+        这要求 use-direct-connection 为 true。
         """)
         @DefaultBoolean(true)
         @PluginSpecific
@@ -434,45 +432,45 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface AdvancedConfig {
         @Comment("""
-            Specify how many days player skin images will be cached to disk to save downloading them from the internet.
-            A value of 0 is disabled. (Default: 0)""")
+            指定玩家皮肤图像将缓存到磁盘的天数，以节省从互联网下载它们的时间。
+            值为 0 表示禁用。（默认值：0）""")
         int cacheImages();
 
         @Comment("""
-            Geyser updates the Scoreboard after every Scoreboard packet, but when Geyser tries to handle
-            a lot of scoreboard packets per second, this can cause serious lag.
-            This option allows you to specify after how many Scoreboard packets per seconds
-            the Scoreboard updates will be limited to four updates per second.""")
+            Geyser 在每个记分板数据包后更新记分板，但是当 Geyser 尝试处理
+            每秒大量的记分板数据包时，这可能会导致严重的延迟。
+            此选项允许您指定每秒超过多少个记分板数据包后，
+            记分板更新将限制为每秒四次更新。""")
         @DefaultNumeric(20)
         int scoreboardPacketThreshold();
 
         @Comment("""
-            Whether Geyser should send team names in command suggestions.
-            Disable this if you have a lot of teams used that you don't need as suggestions.""")
+            Geyser 是否应在命令建议中发送队伍名称。
+            如果您使用了大量不需要作为建议的队伍，请禁用此项。""")
         @DefaultBoolean(true)
         boolean addTeamSuggestions();
 
         @Comment("""
-            A list of remote resource pack urls to send to the Bedrock client for downloading.
-            The Bedrock client is very picky about how these are delivered - please see our wiki page for further info: https://geysermc.org/wiki/geyser/packs/
+            要发送给 Bedrock 客户端供下载的远程资源包 URL 列表。
+            Bedrock 客户端对这些资源的交付方式非常挑剔 - 请参阅我们的 wiki 页面了解更多信息：https://geysermc.org/wiki/geyser/packs/
             """)
         default List<String> resourcePackUrls() {
             return Collections.emptyList();
         }
 
-        // Cannot be type File yet because we may want to hide it in plugin instances.
+        // 暂时不能是 File 类型，因为我们可能希望在插件实例中隐藏它。
         @Comment("""
-            Floodgate uses encryption to ensure use from authorized sources.
-            This should point to the public key generated by Floodgate (BungeeCord, Spigot or Velocity)
-            You can ignore this when not using Floodgate.
-            If you're using a plugin version of Floodgate on the same server, the key will automatically be picked up from Floodgate.""")
+            Floodgate 使用加密来确保来自授权来源的使用。
+            这应该指向 Floodgate（BungeeCord、Spigot 或 Velocity）生成的公钥。
+            如果不使用 Floodgate，可以忽略此项。
+            如果您在同一服务器上使用 Floodgate 的插件版本，该密钥将自动从 Floodgate 获取。""")
         @DefaultString("key.pem")
         String floodgateKeyFile();
 
-        @Comment("Advanced networking options for the Geyser to Java server connection")
+        @Comment("用于 Geyser 到 Java 服务器连接的高级网络选项")
         AdvancedJavaConfig java();
 
-        @Comment("Advanced networking options for Geyser's Bedrock listener")
+        @Comment("用于 Geyser 的 Bedrock 监听器的高级网络选项")
         AdvancedBedrockConfig bedrock();
     }
 
@@ -481,18 +479,23 @@ public interface GeyserConfig {
         @DefaultString("")
         String gameId();
 
+        @Comment("正式服签名")
         @DefaultString("")
         String gameKey();
 
         @DefaultString("")
+        @Comment("测试服签名")
         String testGameKey();
 
+        @Comment("是否是测试服")
         @DefaultBoolean(true)
         boolean isTestServer();
 
+        @Comment("商城URL，一般不需要配置，预留用")
         @DefaultString("")
         String shopServerUrl();
 
+        @Comment("服务URL，一般不需要配置，预留用")
         @DefaultString("")
         String webServerUrl();
     }
@@ -512,52 +515,52 @@ public interface GeyserConfig {
         @DefaultBoolean(false)
         boolean enableOptionalPacks();
 
-        @DefaultString("")
+        @DefaultString("jdbc:mariadb://127.0.0.1:3306/minecraft?allowPublicKeyRetrieval=true&useSSL=false")
         String mysqlUrl();
 
-        @DefaultString("")
+        @DefaultString("minecraft")
         String mysqlUser();
 
-        @DefaultString("")
+        @DefaultString("minecraft")
         String mysqlPass();
     }
 
     @ConfigSerializable
     interface RedisConfig {
-        @DefaultString("redis-02.bjd-mc.com")
+        @DefaultString("127.0.0.1")
         String url();
 
         @DefaultNumeric(6379)
         int port();
 
-        @DefaultString("")
+        @DefaultString("mcnetgame")
         String password();
     }
 
     @ConfigSerializable
     interface NeteaseConfig {
-        @Comment("Whether to require Netease online mode authentication.")
+        @Comment("是否需要网易正版验证。")
         @DefaultBoolean(false)
         boolean onlineMode();
 
-        @Comment("Whether PC clients are allowed.")
+        @Comment("是否允许 PC 客户端。")
         @DefaultBoolean(false)
         boolean allowedPc();
 
-        @Comment("Whether custom Bedrock geometry should be accepted.")
+        @Comment("是否接受自定义 Bedrock 几何模型。")
         @DefaultBoolean(false)
         boolean allowCustomGeometry();
 
-        @Comment("NetEase shop")
+        @Comment("网易商店")
         ShopConfig shop();
 
-        @Comment("Skin synchronization service settings")
+        @Comment("皮肤同步服务设置")
         ServiceConfig service();
 
-        @Comment("Optional resource pack settings")
+        @Comment("可选资源包设置")
         OptionalPacksConfig optionalPacks();
 
-        @Comment("Redis settings")
+        @Comment("Redis 设置")
         RedisConfig redis();
     }
 }

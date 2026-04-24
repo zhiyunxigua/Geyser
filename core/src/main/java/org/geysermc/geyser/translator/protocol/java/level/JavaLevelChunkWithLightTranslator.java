@@ -540,17 +540,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 updatedItemFrames++;
             }
         }
-        if (updatedItemFrames > 0 || !session.getItemFrameCache().isEmpty()) {
-            session.getGeyser().getLogger().info(
-                "[item-frame-chunk-scan] session=%s chunk=(%d,%d) cacheSize=%d updated=%d".formatted(
-                    session.bedrockUsername(),
-                    packet.getX(),
-                    packet.getZ(),
-                    session.getItemFrameCache().size(),
-                    updatedItemFrames
-                )
-            );
-        }
     }
 
     static final class ExtendedCollisionsStorage {
