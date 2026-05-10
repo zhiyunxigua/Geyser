@@ -115,7 +115,6 @@ import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -233,7 +232,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
-import org.msgpack.MessagePack;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
@@ -965,42 +963,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
 
         upstream.sendPacket(gamerulePacket);
-
-        // 创建 NeteasePythonRpcPacket 并直接设置 bytes
-        ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(Key.key(PluginMessageChannels.MOD_SDK), getPlayerInfo());
-        this.sendDownstreamPacket(pythonRpcPacket);
-    }
-
-    private byte[] getPlayerInfo() {
-        try {
-            Map<String, Object> playerInfo = new HashMap<>() {{
-                put("GameId", geyser.config().netease().shop().gameId());
-                if (geyser.config().netease().shop().isTestServer()) {
-                    put("GameKey", geyser.config().netease().shop().testGameKey());
-                } else {
-                    put("GameKey", geyser.config().netease().shop().gameKey());
-                }
-                put("TestServer", geyser.config().netease().shop().isTestServer());
-                put("ShopServerUrl", geyser.config().netease().shop().shopServerUrl());
-                put("WebServerUrl", geyser.config().netease().shop().webServerUrl());
-                put("ProxyUid", getAuthData().uid());
-                put("Uuid", getAuthData().uuid().toString());
-            }};
-
-            MessagePack messagePack = new MessagePack();
-            List<Object> data = Arrays.asList(
-                "SetPlayerInfo",
-                Arrays.asList(playerInfo),
-                null
-            );
-
-            // 序列化
-            return messagePack.write(data);
-
-        } catch (Exception e) {
-            geyser.getLogger().error("Failed to send player info", e);
-            return null;
-        }
     }
 
     public void authenticate(String username) {

@@ -55,6 +55,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -88,7 +89,19 @@ public class LoginEncryptionUtils {
             long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
 
             IdentityData extraData = result.identityClaims().extraData;
-            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid, extraData.uid, issuedAt));
+            UUID player_uuid;
+            String xuid = extraData.xuid;
+            if (xuid.isEmpty()) {
+                UUID nameUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + extraData.displayName).getBytes(
+                    StandardCharsets.UTF_8));
+                String last8 = Long.toHexString(nameUUID.getLeastSignificantBits()).substring(0, 8);
+                player_uuid = UUID.fromString("00000000-0000-4000-8000-0000" + last8);
+            } else if (xuid.length() > 8) {
+                player_uuid = UUID.fromString(xuid);
+            } else {
+                player_uuid = UUID.fromString("00000000-0000-4000-8000-0000" + xuid);
+            }
+            session.setAuthData(new AuthData(extraData.displayName, player_uuid, extraData.xuid, extraData.uid, issuedAt));
 
             // Netease
             if (authPayload instanceof CertificateChainPayload certificateChainPayload) {

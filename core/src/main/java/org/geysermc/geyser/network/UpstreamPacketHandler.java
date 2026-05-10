@@ -225,7 +225,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
 
         GeyserImpl.getInstance().getLogger().info(String.format("Player %s : %s connected with protocol version %s!",
-            session.bedrockUsername(), session.playerUuid(), session.protocolVersion()));
+            session.bedrockUsername(), session.getAuthData().uuid(), session.protocolVersion()));
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
             return PacketSignal.HANDLED;

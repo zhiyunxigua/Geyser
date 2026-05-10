@@ -475,33 +475,6 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
-    interface ShopConfig {
-        @DefaultString("")
-        String gameId();
-
-        @Comment("正式服签名")
-        @DefaultString("")
-        String gameKey();
-
-        @DefaultString("")
-        @Comment("测试服签名")
-        String testGameKey();
-
-        @Comment("是否是测试服")
-        @DefaultBoolean(true)
-        boolean isTestServer();
-
-        @Comment("商城URL，一般不需要配置，预留用")
-        @DefaultString("")
-        String shopServerUrl();
-
-        @Comment("服务URL，一般不需要配置，预留用")
-        @DefaultString("")
-        String webServerUrl();
-    }
-
-
-    @ConfigSerializable
     interface ServiceConfig {
         @DefaultString("http://skinsync.bjd-mc.com:12455")
         String skinurl();
@@ -550,9 +523,6 @@ public interface GeyserConfig {
         @Comment("是否接受自定义 Bedrock 几何模型。")
         @DefaultBoolean(false)
         boolean allowCustomGeometry();
-
-        @Comment("网易商店")
-        ShopConfig shop();
 
         @Comment("皮肤同步服务设置")
         ServiceConfig service();
