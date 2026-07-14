@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -38,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -58,19 +56,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-import org.msgpack.MessagePack;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -79,9 +72,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     @Override
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
+        Set<PlayerAuthInputData> inputData = packet.getInputData();
 
         session.setClientTicks(packet.getTick());
-        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null);
+        session.setInClientPredictedVehicle(inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null);
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -89,12 +83,23 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         ServerboundPlayerCommandPacket sprintPacket = null;
 
-        Set<PlayerAuthInputData> inputData = packet.getInputData();
         // These inputs are sent in order, so if e.g. START_GLIDING and STOP_GLIDING are both present,
         // it's important to make sure we send the last known status instead of both to the Java server.
-        Set<PlayerAuthInputData> leftOverInputData = new HashSet<>(packet.getInputData());
+        int startSprintingIndex = -1;
+        int stopSprintingIndex = -1;
+        int stopGlidingIndex = -1;
+        int inputIndex = 0;
         for (PlayerAuthInputData input : inputData) {
-            leftOverInputData.remove(input);
+            switch (input) {
+                case START_SPRINTING -> startSprintingIndex = inputIndex;
+                case STOP_SPRINTING -> stopSprintingIndex = inputIndex;
+                case STOP_GLIDING -> stopGlidingIndex = inputIndex;
+            }
+            inputIndex++;
+        }
+
+        inputIndex = 0;
+        for (PlayerAuthInputData input : inputData) {
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
@@ -103,7 +108,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case START_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, true);
                 case STOP_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, false);
                 case START_SPRINTING -> {
-                    if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
+                    if (stopSprintingIndex <= inputIndex) {
                         if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
                             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
                             attributesPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -117,7 +122,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
                 case STOP_SPRINTING -> {
                     // Don't send sprinting update when we weren't sprinting
-                    if (!leftOverInputData.contains(PlayerAuthInputData.START_SPRINTING) && session.isSprinting()) {
+                    if (startSprintingIndex <= inputIndex && session.isSprinting()) {
                         sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING);
                         session.setSprinting(false);
                     }
@@ -153,7 +158,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     // Bedrock can send both start_glide and stop_glide in the same packet.
                     // We only want to start gliding if the client has not stopped gliding in the same tick.
                     // last replicated on 1.21.70 by "walking" and jumping while in water
-                    if (!leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
+                    if (stopGlidingIndex <= inputIndex) {
                         if (entity.canStartGliding()) {
                             // On Java you can't start gliding while flying
                             if (session.isFlying()) {
@@ -201,6 +206,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     CooldownUtils.sendCooldown(session);
                 }
             }
+            inputIndex++;
         }
 
         // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
@@ -236,42 +242,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
-        }
-
-        InputMode inputMode = packet.getInputMode();
-        if (inputMode != null) {
-            InputMode lastInputMode = session.getLastInputMode();
-            if (inputMode.equals(lastInputMode)) {
-                return;
-            }
-            session.setLastInputMode(inputMode);
-            ServerboundCustomPayloadPacket pythonRpcPacket = new ServerboundCustomPayloadPacket(
-                Key.key(PluginMessageChannels.MOD_SDK),
-                getInputModeData(session, inputMode));
-            session.sendDownstreamGamePacket(pythonRpcPacket);
-        }
-    }
-
-    /**
-     * 构建操作模式数据
-     */
-    private byte[] getInputModeData(GeyserSession session, InputMode inputMode) {
-        try {
-            MessagePack messagePack = new MessagePack();
-            Map<String, Object> inputModeInfo = new HashMap<>();
-            inputModeInfo.put("input_mode", inputMode.name());
-
-            List<Object> data = Arrays.asList(
-                "PlayerInputMode",  // 方法名
-                Arrays.asList(inputModeInfo),  // 参数列表
-                null  // 回调ID
-            );
-
-            return messagePack.write(data);
-
-        } catch (Exception e) {
-            session.getGeyser().getLogger().error("Failed to create input mode data", e);
-            return new byte[0];
         }
     }
 
