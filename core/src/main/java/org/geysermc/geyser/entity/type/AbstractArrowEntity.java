@@ -84,4 +84,5 @@ public class AbstractArrowEntity extends Entity {
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
         super.updatePositionAndRotation(moveX, moveY, moveZ, yaw, pitch, moveY == 0);
     }
+
 }

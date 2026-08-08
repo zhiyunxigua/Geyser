@@ -37,4 +37,5 @@ public class SolidCollision extends BlockCollision {
             new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
         });
     }
+
 }

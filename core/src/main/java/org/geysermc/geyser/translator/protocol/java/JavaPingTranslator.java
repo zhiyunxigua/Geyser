@@ -25,18 +25,21 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPingPacket;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundPongPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPingPacket;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundPongPacket;
 
-// Why does this packet exist? Whatever, we better implement it
+// This packet is the same as keep alive, except it runs on the client's main thread.
 @Translator(packet = ClientboundPingPacket.class)
 public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundPingPacket packet) {
+        // Unlike keep alive, this packet is a client main-thread barrier. A Bedrock network latency response
+        // does not guarantee that preceding game packets have been applied, so forwarding it can acknowledge
+        // anti-cheat transactions before movement or teleport state reaches the client.
         session.sendDownstreamPacket(new ServerboundPongPacket(packet.getId()));
     }
 }

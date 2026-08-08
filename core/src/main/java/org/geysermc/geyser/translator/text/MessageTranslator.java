@@ -81,12 +81,12 @@ public class MessageTranslator {
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
-        GSON_SERIALIZER = DefaultComponentSerializer.get()
+        GSON_SERIALIZER = new LenientGsonComponentSerializer(DefaultComponentSerializer.get()
                 .toBuilder()
                 // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
                 // fixes issues where legacy hover events throw deserialization errors
                 .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
-                .build();
+                .build());
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
@@ -108,6 +108,7 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
+        formats.add(CharacterAndFormat.characterAndFormat('v', TextColor.color(235, 114, 20))); // Resin
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
             .nestingLimit(30)

@@ -64,7 +64,7 @@ public class FireworkEntity extends Entity {
         BedrockItemBuilder builder = new BedrockItemBuilder();
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
         Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, tooltip, builder);
-        
+
         dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }
 
